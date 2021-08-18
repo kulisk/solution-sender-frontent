@@ -1,13 +1,17 @@
 import React, {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
+import {API_URL} from "../const/url";
 
 const ProblemPage = () => {
     const [languages, setLanguages] = useState([]);
     const [statementUrl, setStatementUrl] = useState('/');
+    const [language, setLanguage] = useState(1);
+    const [solution, setSolution] = useState('');
+    const [submits, setSubmits] = useState([]);
+    const [alertShowing, setAlertShowing] = useState(false);
 
     const {id} = useParams();
 
-    //TODO: maybe you will have to add id in deps
     useEffect(() => {
         fetch(`http://localhost:5000/${id}`).then(async response => {
             setStatementUrl(await response.text());
@@ -22,20 +26,83 @@ const ProblemPage = () => {
         }).catch(error => {
             console.log("Get languages error", error)
         })
-    })
 
-    // const onSubmitClick = () => {
-    //
-    // }
+        fetch(`${API_URL}/submits/${id}`).then(async res => {
+            const json = await res.json()
+            setSubmits(json.results);
+        }).catch(error => {
+            console.log("Get submits error", error);
+        })
+    }, [id])
+
+    const onLanguageChange = (event) => {
+        setLanguage(event.target.value);
+    }
+
+    const onSolutionChange = (event) => {
+        setSolution(event.target.value);
+    }
+
+    const onShareClick = async (event) => {
+        event.preventDefault();
+        await navigator.clipboard.writeText(window.location.href)
+        setAlertShowing(true);
+        setTimeout(() => {
+            setAlertShowing(false);
+        }, 1000)
+    }
+
+    const onSubmitClick = (event) => {
+        event.preventDefault();
+        const body = {
+            compilerId: language,
+            solution: solution,
+            problemId: id
+        }
+        fetch(API_URL, {
+            method: 'POST',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: JSON.stringify(body)
+        }).then(() => {
+            fetch(`${API_URL}/submits/${id}`).then(async res => {
+                const json = await res.json()
+                setSubmits(json.results);
+            }).catch(error => {
+                console.log("Get submits error", error);
+            })
+        }).catch(error => {
+            console.log("Send solution error", error);
+        })
+    }
+
+    const getSubmitBg = (submitStatus) => {
+        if (submitStatus === 'OK') {
+            return "bg-success";
+        }
+        if (submitStatus === 'FAILED') {
+            return "bg-danger";
+        }
+        return "bg-primary";
+    }
 
     return (
         <div className="container mt-5">
+            {alertShowing && <div className="alert alert-success">Copied!</div>}
             <a href={statementUrl}>Statement</a>
             <form>
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <label htmlFor="solutionCode">Solution</label>
                     <div className="selectContainer">
-                        <select className="form-select" aria-label="Default select example">
+                        <select className="form-select"
+                                aria-label="Default select example"
+                                onChange={(event) => onLanguageChange(event)}
+                                value={language}>
                             {
                                 languages.map(language => <option key={language.id}
                                                                   value={language.id}>{language.name}</option>)
@@ -43,15 +110,24 @@ const ProblemPage = () => {
                         </select>
                     </div>
                 </div>
-                <textarea className="form-control" rows="9"></textarea>
-                <div className="d-flex justify-content-end mt-3">
-                    <button className="btn btn-primary me-3">Share</button>
-                    <button className="btn btn-success" type="submit">Submit
+                <textarea className="form-control"
+                          rows="9"
+                          onChange={(event) => onSolutionChange(event)}
+                          value={solution}/>
+                <div className="d-flex justify-content-end mt-3 mb-3">
+                    <button className="btn btn-primary me-3" onClick={(event) => onShareClick(event)}>Share</button>
+                    <button className="btn btn-success" onClick={(event) => onSubmitClick(event)}>Submit
                     </button>
                 </div>
+                {
+                    submits.map((submit, index) => <div key={`submit${index}`}
+                                                        className={`submitContainer ${getSubmitBg(submit.status)}`}>
+                        <div>{submit.status}</div>
+                    </div>)
+                }
             </form>
         </div>
     );
 };
-// onClick={() => onSubmitClick()}
+
 export default ProblemPage;

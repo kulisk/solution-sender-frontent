@@ -10,8 +10,14 @@
 
 .submitContainer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     height: 30px;
     padding: 0 10px;
+}
+
+.copyAlert {
+    position: absolute;
+    top: 0;
+    right: 0;
 }
