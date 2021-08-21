@@ -11,4 +11,8 @@ export const routes = [
         path: `${PROBLEM_ROUTE}/:id`,
         Component: ProblemPage,
     },
+    {
+        path: `${PROBLEM_ROUTE}/:id/:token`,
+        Component: ProblemPage,
+    },
 ];

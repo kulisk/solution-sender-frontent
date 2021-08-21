@@ -9,8 +9,10 @@ const ProblemPage = () => {
     const [solution, setSolution] = useState('');
     const [submits, setSubmits] = useState([]);
     const [alertShowing, setAlertShowing] = useState(false);
+    const [isShareSolution, setIsShareSolution] = useState(false);
 
     const {id} = useParams();
+    const {token} = useParams();
 
     useEffect(() => {
         fetch(`http://localhost:5000/${id}`).then(async response => {
@@ -18,6 +20,7 @@ const ProblemPage = () => {
         }).catch(error => {
             console.log("Get statement error", error);
         })
+
         fetch(`https://checking.sybon.org/api/Compilers`).then(async response => {
             let json = await response.json()
             setLanguages(json.map(language => {
@@ -33,7 +36,16 @@ const ProblemPage = () => {
         }).catch(error => {
             console.log("Get submits error", error);
         })
-    }, [id])
+
+        if (token) {
+            fetch(`${API_URL}/share/${token}`).then(async res => {
+                const json = await res.json();
+                setSolution(atob(json.result));
+            }).catch(error => {
+                console.log("Get shared problem error", error);
+            })
+        }
+    }, [id, token])
 
     const onLanguageChange = (event) => {
         setLanguage(event.target.value);
@@ -43,9 +55,39 @@ const ProblemPage = () => {
         setSolution(event.target.value);
     }
 
+    const generateToken = () => {
+        return (Date.now() + Math.random() * (1e6 + 4)).toString();
+    }
+
+    const sendShareRequest = (shareToken) => {
+        const body = {
+            solution: solution,
+            token: shareToken
+        }
+        fetch(`${API_URL}/share`, {
+            method: 'POST',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: JSON.stringify(body)
+        }).catch(error => {
+            console.log("Share solution error", error);
+        })
+    }
+
     const onShareClick = async (event) => {
         event.preventDefault();
-        await navigator.clipboard.writeText(window.location.href)
+        if (isShareSolution) {
+            const shareToken = generateToken();
+            sendShareRequest(shareToken);
+            await navigator.clipboard.writeText(window.location.href + '/' + shareToken);
+        } else {
+            await navigator.clipboard.writeText(window.location.href)
+        }
         setAlertShowing(true);
         setTimeout(() => {
             setAlertShowing(false);
@@ -70,10 +112,11 @@ const ProblemPage = () => {
             referrerPolicy: 'no-referrer',
             body: JSON.stringify(body)
         }).then(() => {
-            fetch(`${API_URL}/submits/${id}`).then(async res => {
-                const json = await res.json()
-                setSubmits(json.results);
-            }).catch(error => {
+            fetch(`${API_URL}/submits/${id}`)
+                .then(async res => {
+                    const json = await res.json()
+                    setSubmits(json.results);
+                }).catch(error => {
                 console.log("Get submits error", error);
             })
         }).catch(error => {
@@ -92,41 +135,48 @@ const ProblemPage = () => {
     }
 
     return (
-        <div className="container mt-5">
-            {alertShowing && <div className="alert alert-success">Copied!</div>}
-            <a href={statementUrl}>Statement</a>
-            <form>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <label htmlFor="solutionCode">Solution</label>
-                    <div className="selectContainer">
-                        <select className="form-select"
-                                aria-label="Default select example"
-                                onChange={(event) => onLanguageChange(event)}
-                                value={language}>
-                            {
-                                languages.map(language => <option key={language.id}
-                                                                  value={language.id}>{language.name}</option>)
-                            }
-                        </select>
+            <div className="container mt-5">
+                {alertShowing && <div className="alert alert-success copyAlert">Copied!</div>}
+                <a href={statementUrl}>Statement</a>
+                <form>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <label htmlFor="solutionCode">Solution</label>
+                        <div className="selectContainer">
+                            <select className="form-select"
+                                    aria-label="Default select example"
+                                    onChange={(event) => onLanguageChange(event)}
+                                    value={language}>
+                                {
+                                    languages.map(language => <option key={language.id}
+                                                                      value={language.id}>{language.name}</option>)
+                                }
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <textarea className="form-control"
-                          rows="9"
-                          onChange={(event) => onSolutionChange(event)}
-                          value={solution}/>
-                <div className="d-flex justify-content-end mt-3 mb-3">
-                    <button className="btn btn-primary me-3" onClick={(event) => onShareClick(event)}>Share</button>
-                    <button className="btn btn-success" onClick={(event) => onSubmitClick(event)}>Submit
-                    </button>
-                </div>
-                {
-                    submits.map((submit, index) => <div key={`submit${index}`}
-                                                        className={`submitContainer ${getSubmitBg(submit.status)}`}>
-                        <div>{submit.status}</div>
-                    </div>)
-                }
-            </form>
-        </div>
+                    <textarea className="form-control"
+                              rows="9"
+                              onChange={(event) => onSolutionChange(event)}
+                              value={solution}/>
+                    <div className="d-flex justify-content-end align-items-center mt-3 mb-3">
+                        <input className="form-check-input me-2"
+                               onChange={(event) => {
+                                   setIsShareSolution(event.target.value);
+                               }}
+                               type="checkbox"/>
+                        <label className="form-check-label me-3" htmlFor="flexCheckDefault">Share with solution</label>
+                        <button className="btn btn-primary me-3" onClick={(event) => onShareClick(event)}>Share
+                        </button>
+                        <button className="btn btn-success" onClick={(event) => onSubmitClick(event)}>Submit
+                        </button>
+                    </div>
+                    {
+                        submits.map((submit, index) => <div key={`submit${index}`}
+                                                            className={`submitContainer ${getSubmitBg(submit.status)}`}>
+                            <div>{submit.status}</div>
+                        </div>)
+                    }
+                </form>
+            </div>
     );
 };
 
