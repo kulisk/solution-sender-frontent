@@ -30,19 +30,19 @@ const ProblemPage = () => {
             console.log("Get languages error", error)
         })
 
-        fetch(`${API_URL}/submits/${id}`).then(async res => {
-            const json = await res.json()
-            setSubmits(json.results);
-        }).catch(error => {
-            console.log("Get submits error", error);
-        })
-
         if (token) {
             fetch(`${API_URL}/share/${token}`).then(async res => {
                 const json = await res.json();
                 setSolution(atob(json.result));
             }).catch(error => {
                 console.log("Get shared problem error", error);
+            })
+        } else {
+            fetch(`${API_URL}/submits/${id}`).then(async res => {
+                const json = await res.json()
+                setSubmits(json.results);
+            }).catch(error => {
+                console.log("Get submits error", error);
             })
         }
     }, [id, token])
