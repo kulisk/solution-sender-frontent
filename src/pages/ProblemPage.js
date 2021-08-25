@@ -126,18 +126,18 @@ const ProblemPage = () => {
 
     const getSubmitBg = (submitStatus) => {
         if (submitStatus === 'OK') {
-            return "bg-success";
+            return "text-success";
         }
         if (submitStatus === 'FAILED') {
-            return "bg-danger";
+            return "text-danger";
         }
-        return "bg-primary";
+        return "text-primary";
     }
 
     return (
             <div className="container mt-5">
                 {alertShowing && <div className="alert alert-success copyAlert">Copied!</div>}
-                <a href={statementUrl}>Statement</a>
+                <a href={statementUrl} target="_blank" rel="noreferrer">Statement</a>
                 <form>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <label htmlFor="solutionCode">Solution</label>
