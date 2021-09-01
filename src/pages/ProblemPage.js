@@ -10,12 +10,13 @@ const ProblemPage = () => {
     const [submits, setSubmits] = useState([]);
     const [alertShowing, setAlertShowing] = useState(false);
     const [isShareSolution, setIsShareSolution] = useState(false);
-
     const {id} = useParams();
     const {token} = useParams();
 
     useEffect(() => {
-        fetch(`http://localhost:5000/${id}`).then(async response => {
+        fetch(`http://localhost:5000/${id}`, {
+            credentials: "include"
+        }).then(async response => {
             setStatementUrl(await response.text());
         }).catch(error => {
             console.log("Get statement error", error);
@@ -37,14 +38,15 @@ const ProblemPage = () => {
             }).catch(error => {
                 console.log("Get shared problem error", error);
             })
-        } else {
-            fetch(`${API_URL}/submits/${id}`).then(async res => {
-                const json = await res.json()
-                setSubmits(json.results);
-            }).catch(error => {
-                console.log("Get submits error", error);
-            })
         }
+        fetch(`${API_URL}/submits/${id}`, {
+            credentials: "include",
+        }).then(async res => {
+            const json = await res.json()
+            setSubmits(json.results);
+        }).catch(error => {
+            console.log("Get submits error", error);
+        })
     }, [id, token])
 
     const onLanguageChange = (event) => {
@@ -67,7 +69,7 @@ const ProblemPage = () => {
         fetch(`${API_URL}/share`, {
             method: 'POST',
             cache: 'no-cache',
-            credentials: 'same-origin',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -104,7 +106,7 @@ const ProblemPage = () => {
         fetch(API_URL, {
             method: 'POST',
             cache: 'no-cache',
-            credentials: 'same-origin',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -112,7 +114,9 @@ const ProblemPage = () => {
             referrerPolicy: 'no-referrer',
             body: JSON.stringify(body)
         }).then(() => {
-            fetch(`${API_URL}/submits/${id}`)
+            fetch(`${API_URL}/submits/${id}`, {
+                credentials: "include"
+            })
                 .then(async res => {
                     const json = await res.json()
                     setSubmits(json.results);
