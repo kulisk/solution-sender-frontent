@@ -32,7 +32,9 @@ const ProblemPage = () => {
         })
 
         if (token) {
-            fetch(`${API_URL}/share/${token}`).then(async res => {
+            fetch(`${API_URL}/share/${token}`, {
+                credentials: "include",
+            }).then(async res => {
                 const json = await res.json();
                 setSolution(atob(json.result));
             }).catch(error => {
