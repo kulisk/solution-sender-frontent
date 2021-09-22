@@ -15,7 +15,7 @@ const ProblemPage = () => {
     const {token} = useParams();
 
     useEffect(() => {
-        fetch(`${API_URL}/${id}`, {
+        fetch(`${API_URL}${id}`, {
             credentials: "include"
         }).then(async response => {
             setStatementUrl(await response.text());
@@ -33,7 +33,7 @@ const ProblemPage = () => {
         })
 
         if (token) {
-            fetch(`${API_URL}/share/${token}`, {
+            fetch(`${API_URL}share/${token}`, {
                 credentials: "include",
             }).then(async res => {
                 const json = await res.json();
@@ -42,7 +42,7 @@ const ProblemPage = () => {
                 console.log("Get shared problem error", error);
             })
         }
-        fetch(`${API_URL}/submits/${id}`, {
+        fetch(`${API_URL}submits/${id}`, {
             credentials: "include",
         }).then(async res => {
             const json = await res.json()
@@ -69,7 +69,7 @@ const ProblemPage = () => {
             solution: solution,
             token: shareToken
         }
-        fetch(`${API_URL}/share`, {
+        fetch(`${API_URL}share`, {
             method: 'POST',
             cache: 'no-cache',
             credentials: 'include',
@@ -117,7 +117,7 @@ const ProblemPage = () => {
             referrerPolicy: 'no-referrer',
             body: JSON.stringify(body)
         }).then(() => {
-            fetch(`${API_URL}/submits/${id}`, {
+            fetch(`${API_URL}submits/${id}`, {
                 credentials: "include"
             })
                 .then(async res => {
