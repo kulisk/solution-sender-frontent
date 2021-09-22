@@ -71,13 +71,10 @@ const ProblemPage = () => {
         }
         fetch(`${API_URL}/share`, {
             method: 'POST',
-            cache: 'no-cache',
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
-            redirect: 'follow',
-            referrerPolicy: 'no-referrer',
             body: JSON.stringify(body)
         }).catch(error => {
             console.log("Share solution error", error);
@@ -108,13 +105,10 @@ const ProblemPage = () => {
         }
         fetch(API_URL, {
             method: 'POST',
-            cache: 'no-cache',
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
-            redirect: 'follow',
-            referrerPolicy: 'no-referrer',
             body: JSON.stringify(body)
         }).then(() => {
             fetch(`${API_URL}/submits/${id}`, {
