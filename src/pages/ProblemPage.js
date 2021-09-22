@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
-import {API_URL} from "../const/url";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const ProblemPage = () => {
     const [languages, setLanguages] = useState([]);
@@ -14,7 +15,7 @@ const ProblemPage = () => {
     const {token} = useParams();
 
     useEffect(() => {
-        fetch(`http://localhost:5000/${id}`, {
+        fetch(`${API_URL}/${id}`, {
             credentials: "include"
         }).then(async response => {
             setStatementUrl(await response.text());

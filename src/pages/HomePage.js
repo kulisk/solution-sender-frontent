@@ -6,7 +6,7 @@ const HomePage = () => {
     const [problemLinks, setProblemLinks] = useState([]);
 
     useEffect(() => {
-        fetch('http://localhost:5000', {
+        fetch(process.env.REACT_APP_API_URL, {
             credentials: 'include'
         }).then(async response => {
             let json = await response.json()
